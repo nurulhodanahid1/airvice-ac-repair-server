@@ -18,6 +18,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 ///////
 client.connect(err => {
   const serviceCollection = client.db(process.env.DB_NAME).collection("services");
+  const orderCollection = client.db(process.env.DB_NAME).collection("orders");
+  const reviewCollection = client.db(process.env.DB_NAME).collection("reviews");
+  const engineerCollection = client.db(process.env.DB_NAME).collection("engineers");
 
   app.post("/addServices", (req, res) => {
     const newService = req.body;
@@ -44,13 +47,7 @@ client.connect(err => {
       .then(documents => res.send(!!documents.value))
   })
 
-});
-/////////
-
-// Add Orders
-client.connect(err => {
-  const orderCollection = client.db(process.env.DB_NAME).collection("orders");
-
+  // Add Orders
   app.post('/addOrders', (req, res) => {
     const newOrder = req.body;
     orderCollection.insertOne(newOrder)
@@ -61,18 +58,13 @@ client.connect(err => {
 
   app.get('/orders', (req, res) => {
     //console.log(req.query.email)
-    orderCollection.find({email: req.query.email})
-    .toArray((err, documents) => {
-      res.send(documents)
-    })
+    orderCollection.find({ email: req.query.email })
+      .toArray((err, documents) => {
+        res.send(documents)
+      })
   })
 
-});
-////////////////////////////////////////////////////////////////
-//add review
-client.connect(err => {
-  const reviewCollection = client.db(process.env.DB_NAME).collection("reviews");
-
+  //add review
   app.post("/addReviews", (req, res) => {
     const newReview = req.body;
     console.log("New Review", newReview);
@@ -91,9 +83,36 @@ client.connect(err => {
       })
   })
 
+  /////////////add engineer
+
+  app.post("/addEngineers", (req, res) => {
+    const newEngineer = req.body;
+    console.log("New Engineer", newEngineer);
+    engineerCollection.insertOne(newEngineer)
+      .then(result => {
+        console.log("inserted count", result.insertedCount);
+        res.send(result.insertedCount > 0)
+      })
+  })
+
+  app.get('/engineers', (req, res) => {
+    engineerCollection.find()
+      .toArray((err, items) => {
+        res.send(items);
+      })
+  })
+  ///admin
+  app.post('/isEngineer', (req, res) => {
+    const signInEmail = req.body.email;
+    console.log("isEngineer", signInEmail)
+    engineerCollection.find({ email: signInEmail})
+      .toArray((err, engineers) => {
+        res.send(engineers.length > 0);
+      })
+  })
+
 });
-
-
+/////////
 
 app.get('/', (req, res) => {
   res.send('Hello from Airvice AC Repairing!')
