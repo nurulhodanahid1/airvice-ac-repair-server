@@ -58,9 +58,17 @@ client.connect(err => {
 
   app.get('/orders', (req, res) => {
     //console.log(req.query.email)
-    orderCollection.find({ email: req.query.email })
-      .toArray((err, documents) => {
-        res.send(documents)
+    const userEmail = req.query.email
+    engineerCollection.find({ email: userEmail })
+      .toArray((err, engineers) => {
+        const filter = {};
+        if (engineers.length === 0) {
+          filter.email = userEmail;
+        }
+        orderCollection.find(filter)
+          .toArray((err, documents) => {
+            res.send(documents)
+          })
       })
   })
 
@@ -105,7 +113,7 @@ client.connect(err => {
   app.post('/isEngineer', (req, res) => {
     const signInEmail = req.body.email;
     console.log("isEngineer", signInEmail)
-    engineerCollection.find({ email: signInEmail})
+    engineerCollection.find({ email: signInEmail })
       .toArray((err, engineers) => {
         res.send(engineers.length > 0);
       })
