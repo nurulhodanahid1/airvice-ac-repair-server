@@ -71,6 +71,23 @@ client.connect(err => {
           })
       })
   })
+  // single order load & update status
+  app.get('/order/:id', (req, res) => {
+    const id = ObjectID(req.params.id)
+    orderCollection.find({_id: id})
+    .toArray ( (err, documents) =>{
+      res.send(documents[0]);
+    })
+  })
+  app.patch('/update/:id', (req, res) => {
+    orderCollection.updateOne({_id: ObjectID(req.params.id)},
+    {
+      $set: {status: req.body.newStatus}
+    })
+    .then (result => {
+      res.send(result.modifiedCount > 0)
+    })
+  })
 
   //add review
   app.post("/addReviews", (req, res) => {
